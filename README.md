@@ -1,2 +1,2 @@
-# tf-knowledge-propagation
+# tf-propagation
 A TensorFlow Label Propagation library
