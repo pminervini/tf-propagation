@@ -1,3 +1,5 @@
+colorclass
+terminaltables
 pytest
 pytest-runner
 pytest-pep8
