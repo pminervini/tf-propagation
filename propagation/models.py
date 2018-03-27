@@ -2,11 +2,9 @@
 
 import tensorflow as tf
 
-from propagation.solvers import ExactSolver
-
 
 class GaussianFields:
-    def __init__(self, L, y, mu, W, eps, solver=None):
+    def __init__(self, l, y, mu, W, eps, solver):
         """
         Gaussian Fields method for Knowledge Propagation, as described in [1] (Sect. 11.3)
         [1] Y Bengio et al. - Label Propagation and Quadratic Criterion - Semi-Supervised Learning, MIT Press.
@@ -16,7 +14,7 @@ class GaussianFields:
 
         where El(f) = ||f_l - y_l||^2 encodes the label consistency, and Es(f) = f^T L f + eps f^T f
         encodes the smoothness of the labeling function across the similarity graph.
-        :param L: TensorFlow tensor
+        :param l: TensorFlow tensor
             N-length {0, 1} integer vector, where L_i = 1 iff the i-th instance is labeled, and 0 otherwise.
         :param y: TensorFlow tensor
             N-length scalar vector, where y_i is the label of the i-th instance.
@@ -27,15 +25,11 @@ class GaussianFields:
         :param eps: TensorFlow tensor
             Scalar regularization parameter.
         """
-        self.L = L
+        self.l = l
         self.y = y
         self.mu = mu
         self.W = W
         self.eps = eps
-
-        if solver is None:
-            solver = ExactSolver()
-
         self.solver = solver
 
     def __call__(self, f):
@@ -54,11 +48,11 @@ class GaussianFields:
         L = D - self.W
 
         # Compute the label consistency
-        S = tf.diag(self.L)
+        S = tf.diag(self.l)
         El = (f - self.y).T.dot(S.dot(f - self.y))
 
         # Compute the smoothness along the similarity graph
-        I = tf.eye(self.L.shape[0])
+        I = tf.eye(self.l.shape[0])
         Es = f.T.dot(L.dot(f)) + self.eps * f.T.dot(I.dot(f))
 
         # Compute the whole cost function
@@ -66,7 +60,7 @@ class GaussianFields:
 
         return E
 
-    def minimize(self, inference=False):
+    def minimize(self):
         """
         Find the global minimum of the following energy (cost) function:
 
@@ -92,7 +86,7 @@ class GaussianFields:
 
             (S + mu L + mu eps I) \hat{f} = S y
             \hat{f} = (S + mu L + mu eps I)^-1 S y
-        :return: Theano tensor
+        :return: TensorFlow tensor
             Vector \hat{f} that minimizes the energy function E(f).
         """
         # Note: for a justification of L = |D| - W in place of L = D - W, see [2]
@@ -102,10 +96,11 @@ class GaussianFields:
         L = D - self.W
 
         # Compute the coefficient matrix A of the system of linear equations
-        S = tf.diag(self.L)
-        I = tf.eye(self.L.shape[0])
-        A = S + self.mu * (L + self.eps * I)
+        S = tf.diag(self.l)
+        I = tf.eye(tf.shape(self.l)[0])
 
-        # Compute the solution
-        hat_f = self.solver(A, S.dot(self.y), inference=inference)
+        A = S + self.mu * (L + self.eps * I)
+        b = tf.einsum('mn,m->m', S, self.y)
+
+        hat_f = self.solver.solve(A, tf.expand_dims(input=b, axis=1))
         return hat_f

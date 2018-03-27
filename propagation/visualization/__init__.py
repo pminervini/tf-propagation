@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from propagation.visualization.hinton import hinton_diagram
+from propagation.visualization.base import HintonDiagram
 
 __all__ = [
-    'hinton_diagram'
+    'HintonDiagram'
 ]

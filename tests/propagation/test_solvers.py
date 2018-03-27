@@ -67,6 +67,5 @@ def test_solvers():
         np.testing.assert_allclose(eX_value, jX_value, rtol=0.001)
         np.testing.assert_allclose(eX_value, nX_value, rtol=0.001)
 
-
 if __name__ == '__main__':
     pytest.main([__file__])
