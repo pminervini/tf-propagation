@@ -48,19 +48,14 @@ def test_model():
             W_ph: W
         }
 
-        model = GaussianFields(l_ph, y_ph, mu_ph, W_ph, eps_ph,
-                               solver=solver,
-                               session=session, feed_dict=feed_dict)
+        model = GaussianFields(l_ph, y_ph, mu_ph, W_ph, eps_ph, solver=solver)
 
         f = model.minimize()
 
         f_value = session.run(f, feed_dict=feed_dict)
 
-        print(f_value)
-
-        # assert f()[1] > 0
-        # assert f()[N - 2] < 0
+        assert f_value[1] > 0
+        assert f_value[N - 2] < 0
 
 if __name__ == '__main__':
-    # pytest.main([__file__])
-    test_model()
+    pytest.main([__file__])
