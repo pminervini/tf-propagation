@@ -44,21 +44,24 @@ class GaussianFields:
             Energy (cost) of the vector f.
         """
         # Compute the un-normalized graph Laplacian: L = D - W
-        D = tf.diag(self.W.sum(axis=0))
+        W_shp = tf.shape(self.W)
+
+        d = tf.reduce_sum(abs(self.W), axis=-1)
+        D = tf.reshape(tf.matrix_diag(d), W_shp)
         L = D - self.W
 
         # Compute the label consistency
-        S = tf.diag(self.l)
-        El = (f - self.y).T.dot(S.dot(f - self.y))
+        S = tf.reshape(tf.matrix_diag(self.l), W_shp)
+        El = tf.einsum('bm,bmn,bn->b', (f - self.y), S, (f - self.y))
 
         # Compute the smoothness along the similarity graph
-        I = tf.eye(self.l.shape[0])
-        Es = f.T.dot(L.dot(f)) + self.eps * f.T.dot(I.dot(f))
+        Es = tf.einsum('bm,bmn,bn->b', f, L, f)
+
+        I = tf.eye(W_shp[-1], batch_shape=[W_shp[0]])
+        Er = tf.einsum('bm,bmn,bn->b', f, I, f)
 
         # Compute the whole cost function
-        E = El + self.mu * Es
-
-        return E
+        return El + self.mu * (Es + self.eps * Er)
 
     def minimize(self):
         """
@@ -92,15 +95,19 @@ class GaussianFields:
         # Note: for a justification of L = |D| - W in place of L = D - W, see [2]
         # [2] P Minervini et al. - Discovering Similarity and Dissimilarity Relations for Knowledge Propagation
         #   in Web Ontologies - Journal on Data Semantics, May 2016
-        D = tf.diag(tf.reduce_sum(abs(self.W), axis=0))
+        W_shp = tf.shape(self.W)
+
+        d = tf.reduce_sum(abs(self.W), axis=-1)
+        D = tf.reshape(tf.matrix_diag(d), W_shp)
         L = D - self.W
 
         # Compute the coefficient matrix A of the system of linear equations
-        S = tf.diag(self.l)
-        I = tf.eye(tf.shape(self.l)[0])
+        S = tf.reshape(tf.matrix_diag(self.l), W_shp)
+        I = tf.eye(W_shp[-1], batch_shape=[W_shp[0]])
 
         A = S + self.mu * (L + self.eps * I)
-        b = tf.einsum('mn,m->m', S, self.y)
+        b = tf.einsum('bmn,bm->bn', S, self.y)
 
-        hat_f = self.solver.solve(A, tf.expand_dims(input=b, axis=1))
-        return hat_f
+        hat_f = self.solver.solve(A, tf.expand_dims(b, 2))
+
+        return tf.reshape(hat_f, tf.shape(self.y))
