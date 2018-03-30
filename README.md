@@ -27,9 +27,9 @@ Here's a small demo, where we propagate the labels (+1.1 and -1.0) from two node
 
 We refer to [TWEB], and [JoDS] for a full derivation, a complexity analysis, and more information on learning the optimal similarity graph from data using backprop.
 
-[TWEB]: P. Minervini, V. Tresp, et al.: [Adaptive Knowledge Propagation in Web Ontologies](https://dl.acm.org/citation.cfm?id=3105961). TWEB 12(1): 2:1-2:28 (2018)
+[TWEB]: [Adaptive Knowledge Propagation in Web Ontologies](https://dl.acm.org/citation.cfm?id=3105961). TWEB 12(1): 2:1-2:28 (2018)
 
-[JoDS]: P. Minervini, V. Tresp, et al.: [Discovering Similarity and Dissimilarity Relations for Knowledge Propagation in Web Ontologies](https://link.springer.com/article/10.1007/s13740-016-0062-7). J. Data Semantics 5(4): 229-248 (2016)
+[JoDS]: [Discovering Similarity and Dissimilarity Relations for Knowledge Propagation in Web Ontologies](https://link.springer.com/article/10.1007/s13740-016-0062-7). J. Data Semantics 5(4): 229-248 (2016)
 
 ### BibTex
 
