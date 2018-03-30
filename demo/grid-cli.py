@@ -15,7 +15,7 @@ import logging
 
 
 def main(argv):
-    nb_rows, nb_cols = 35, 35
+    nb_rows, nb_cols = 25, 25
     nb_nodes = nb_rows * nb_cols
 
     edges = []
@@ -64,26 +64,26 @@ def main(argv):
     l_ph = tf.placeholder('float32', shape=[None, None], name='l')
     y_ph = tf.placeholder('float32', shape=[None, None], name='y')
 
-    mu_ph = tf.placeholder('float32', None, name='mu')
-    eps_ph = tf.placeholder('float32', None, name='eps')
+    mu_ph = tf.placeholder('float32', [None], name='mu')
+    eps_ph = tf.placeholder('float32', [None], name='eps')
 
     W_ph = tf.placeholder('float32', shape=[None, None, None], name='W')
 
-    f_ph = tf.placeholder('float32', shape=[None, None], name='f')
+    solver = ExactSolver()
+    # solver = JacobiSolver()
+    model = GaussianFields(l=l_ph, y=y_ph,
+                           mu=mu_ph, W=W_ph, eps=eps_ph,
+                           solver=solver)
+
+    f_star = model.minimize()
+
+    feed_dict = {
+        l_ph: batch_l, y_ph: batch_y, W_ph: batch_W,
+        mu_ph: np.array([mu] * 2),
+        eps_ph: np.array([eps] * 2),
+    }
 
     with tf.Session() as session:
-        # solver = ExactSolver()
-        solver = JacobiSolver()
-        model = GaussianFields(l_ph, y_ph, mu_ph, W_ph, eps_ph, solver=solver)
-        e = model(f_ph)
-
-        f_star = model.minimize()
-
-        feed_dict = {
-            l_ph: batch_l, y_ph: batch_y, W_ph: batch_W,
-            mu_ph: mu, eps_ph: eps,
-        }
-
         hd = HintonDiagram()
 
         f_value = session.run(f_star, feed_dict=feed_dict)
@@ -92,33 +92,6 @@ def main(argv):
 
         f_value_0 = f_value[0, :]
         print(hd(f_value_0.reshape((nb_rows, nb_cols))))
-
-        feed_dict = {
-            l_ph: batch_l, y_ph: batch_y, W_ph: batch_W,
-            mu_ph: mu, eps_ph: eps,
-            f_ph: f_value
-        }
-
-        minimum_e_value = session.run(e, feed_dict=feed_dict)
-
-        if False:
-            rs = np.random.RandomState(0)
-            for _ in range(32):
-                new_f_value = np.copy(f_value)
-                for i in range(f_value.shape[0]):
-                    for j in range(f_value.shape[1]):
-                        new_f_value[i, j] += rs.normal(0.0, 0.1)
-
-                feed_dict = {
-                    l_ph: batch_l, y_ph: batch_y, W_ph: batch_W,
-                    mu_ph: mu, eps_ph: eps,
-                    f_ph: new_f_value
-                }
-
-                new_e_value = session.run(e, feed_dict=feed_dict)
-
-                for i in range(minimum_e_value.shape[0]):
-                    assert minimum_e_value[i] <= new_e_value[i]
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)

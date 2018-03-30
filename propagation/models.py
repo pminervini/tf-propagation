@@ -102,10 +102,17 @@ class GaussianFields:
         L = D - self.W
 
         # Compute the coefficient matrix A of the system of linear equations
-        S = tf.reshape(tf.matrix_diag(self.l), W_shp)
-        I = tf.eye(W_shp[-1], batch_shape=[W_shp[0]])
+        dl = tf.matrix_diag(self.l)
+        S = tf.reshape(dl, W_shp)
+        I = tf.eye(W_shp[1], batch_shape=[W_shp[0]])
 
-        A = S + self.mu * (L + self.eps * I)
+        r_mu = tf.reshape(self.mu, [-1, 1, 1])
+        r_mu = tf.tile(r_mu, [1, W_shp[1], W_shp[2]])
+
+        r_eps = tf.reshape(self.eps, [-1, 1, 1])
+        r_eps = tf.tile(r_eps, [1, W_shp[1], W_shp[2]])
+
+        A = S + r_mu * (L + r_eps * I)
         b = tf.einsum('bmn,bm->bn', S, self.y)
 
         b = tf.expand_dims(b, 2)

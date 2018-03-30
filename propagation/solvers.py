@@ -37,4 +37,3 @@ class JacobiSolver(ASolver):
             S = B - T
             X = tf.einsum('bmn,bno->bmo', iD, S)
         return tf.reshape(X, tf.shape(B))
-
