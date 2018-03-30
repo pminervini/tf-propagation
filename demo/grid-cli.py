@@ -7,7 +7,7 @@ import numpy as np
 import tensorflow as tf
 
 from propagation.models import GaussianFields
-from propagation.solvers import ExactSolver
+from propagation.solvers import ExactSolver, JacobiSolver
 
 from propagation.visualization import HintonDiagram
 
@@ -59,7 +59,8 @@ def main(argv):
 
     f_ph = tf.placeholder('float32', shape=[None, None], name='f')
 
-    solver = ExactSolver()
+    # solver = ExactSolver()
+    solver = JacobiSolver()
     model = GaussianFields(l_ph, y_ph, mu_ph, W_ph, eps_ph, solver=solver)
     e = model(f_ph)
 
@@ -100,23 +101,24 @@ def main(argv):
 
         minimum_e_value = session.run(e, feed_dict=feed_dict)
 
-        rs = np.random.RandomState(0)
-        for _ in range(32):
-            new_f_value = np.copy(f_value)
-            for i in range(f_value.shape[0]):
-                for j in range(f_value.shape[1]):
-                    new_f_value[i, j] += rs.normal(0.0, 0.1)
+        if False:
+            rs = np.random.RandomState(0)
+            for _ in range(32):
+                new_f_value = np.copy(f_value)
+                for i in range(f_value.shape[0]):
+                    for j in range(f_value.shape[1]):
+                        new_f_value[i, j] += rs.normal(0.0, 0.1)
 
-            feed_dict = {
-                l_ph: batch_l, y_ph: batch_y, W_ph: batch_W,
-                mu_ph: mu, eps_ph: eps,
-                f_ph: new_f_value
-            }
+                feed_dict = {
+                    l_ph: batch_l, y_ph: batch_y, W_ph: batch_W,
+                    mu_ph: mu, eps_ph: eps,
+                    f_ph: new_f_value
+                }
 
-            new_e_value = session.run(e, feed_dict=feed_dict)
+                new_e_value = session.run(e, feed_dict=feed_dict)
 
-            for i in range(minimum_e_value.shape[0]):
-                assert minimum_e_value[i] <= new_e_value[i]
+                for i in range(minimum_e_value.shape[0]):
+                    assert minimum_e_value[i] <= new_e_value[i]
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)

@@ -26,10 +26,10 @@ class JacobiSolver(ASolver):
 
     def solve(self, A, B):
         d = tf.matrix_diag_part(A)
-        D = tf.reshape(tf.diag(d), tf.shape(A))
+        D = tf.reshape(tf.matrix_diag(d), tf.shape(A))
         R = A - D
 
-        iD = tf.reshape(tf.diag(1.0 / d), tf.shape(A))
+        iD = tf.reshape(tf.matrix_diag(1.0 / d), tf.shape(A))
 
         X = tf.zeros_like(B)
         for _ in range(self.nb_iterations):
@@ -37,3 +37,4 @@ class JacobiSolver(ASolver):
             S = B - T
             X = tf.einsum('bmn,bno->bmo', iD, S)
         return tf.reshape(X, tf.shape(B))
+
