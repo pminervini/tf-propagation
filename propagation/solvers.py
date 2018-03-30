@@ -17,6 +17,16 @@ class ASolver(abc.ABC):
 
 class ExactSolver(ASolver):
     def solve(self, A, B):
+        """
+        Solve a system of linear equations.
+
+        Finds X such that:
+            A X = B.
+
+        :param A: [BxMxM] TensorFlow Tensor.
+        :param B: [BxMx1] TensorFlow Tensor.
+        :return: X: [BxMx1] TensorFlow Tensor.
+        """
         return tf.matrix_solve_ls(matrix=A, rhs=B)
 
 
@@ -25,6 +35,17 @@ class JacobiSolver(ASolver):
         self.nb_iterations = nb_iterations
 
     def solve(self, A, B):
+        """
+        Solve a system of linear equations using the Jacobi method.
+        https://en.wikipedia.org/wiki/Jacobi_method
+
+        Finds X such that:
+            A X = B.
+
+        :param A: [BxMxM] TensorFlow Tensor.
+        :param B: [BxMx1] TensorFlow Tensor.
+        :return: X: [BxMx1] TensorFlow Tensor.
+        """
         d = tf.matrix_diag_part(A)
         D = tf.reshape(tf.matrix_diag(d), tf.shape(A))
         R = A - D
