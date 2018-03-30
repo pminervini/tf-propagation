@@ -15,7 +15,7 @@ import logging
 
 
 def main(argv):
-    nb_rows, nb_cols = 25, 25
+    nb_rows, nb_cols = 40, 40
     nb_nodes = nb_rows * nb_cols
 
     edges = []
@@ -87,8 +87,6 @@ def main(argv):
         hd = HintonDiagram()
 
         f_value = session.run(f_star, feed_dict=feed_dict)
-
-        print(f_value.shape)
 
         f_value_0 = f_value[0, :]
         print(hd(f_value_0.reshape((nb_rows, nb_cols))))
