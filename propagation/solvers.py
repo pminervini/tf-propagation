@@ -24,8 +24,8 @@ class ExactSolver(ASolver):
             A X = B.
 
         :param A: [BxMxM] TensorFlow Tensor.
-        :param B: [BxMx1] TensorFlow Tensor.
-        :return: X: [BxMx1] TensorFlow Tensor.
+        :param B: [BxMxN] TensorFlow Tensor.
+        :return: X: [BxMxN] TensorFlow Tensor.
         """
         return tf.matrix_solve_ls(matrix=A, rhs=B)
 
@@ -43,8 +43,8 @@ class JacobiSolver(ASolver):
             A X = B.
 
         :param A: [BxMxM] TensorFlow Tensor.
-        :param B: [BxMx1] TensorFlow Tensor.
-        :return: X: [BxMx1] TensorFlow Tensor.
+        :param B: [BxMxN] TensorFlow Tensor.
+        :return: X: [BxMxN] TensorFlow Tensor.
         """
         d = tf.matrix_diag_part(A)
         D = tf.reshape(tf.matrix_diag(d), tf.shape(A))
