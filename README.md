@@ -21,7 +21,7 @@ Furthermore, it is possible to *backpropagate* the error resulting from the prop
 
 Example:
 
-Here's a small demo, where we propagate the labels (+1 and -1) from two nodes (upper left and lower right) to all nodes in an undirected graph structured as a `40 x 40` grid.
+Here's a small demo, where we propagate the labels (+1.1 and -1.0) from two nodes (upper left and lower right) to all nodes in an undirected graph structured as a `40 x 40` grid.
 
 ![Demo](http://data.neuralnoise.com/tf-propagation/demo.png)
 
