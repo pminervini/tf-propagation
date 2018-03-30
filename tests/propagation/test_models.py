@@ -31,13 +31,13 @@ def test_model():
 
     mu, eps = 1.0, 1e-8
 
-    l_ph = tf.placeholder('float32', shape=[1, None], name='l')
-    y_ph = tf.placeholder('float32', shape=[1, None], name='y')
+    l_ph = tf.placeholder('float32', shape=[None, None], name='l')
+    y_ph = tf.placeholder('float32', shape=[None, None], name='y')
 
-    mu_ph = tf.placeholder('float32', None, name='mu')
-    eps_ph = tf.placeholder('float32', None, name='eps')
+    mu_ph = tf.placeholder('float32', [None], name='mu')
+    eps_ph = tf.placeholder('float32', [None], name='eps')
 
-    W_ph = tf.placeholder('float32', shape=[1, None, None], name='W')
+    W_ph = tf.placeholder('float32', shape=[None, None, None], name='W')
 
     with tf.Session() as session:
         solver = ExactSolver()
@@ -46,7 +46,8 @@ def test_model():
             l_ph: l.reshape(1, N),
             y_ph: y.reshape(1, N),
             W_ph: W.reshape(1, N, N),
-            mu_ph: mu, eps_ph: eps
+            mu_ph: np.array([mu] * 1),
+            eps_ph: np.array([eps] * 1),
         }
 
         model = GaussianFields(l_ph, y_ph, mu_ph, W_ph, eps_ph, solver=solver)
@@ -88,8 +89,8 @@ def test_minimize():
     l_ph = tf.placeholder('float32', shape=[None, None], name='l')
     y_ph = tf.placeholder('float32', shape=[None, None], name='y')
 
-    mu_ph = tf.placeholder('float32', None, name='mu')
-    eps_ph = tf.placeholder('float32', None, name='eps')
+    mu_ph = tf.placeholder('float32', [None], name='mu')
+    eps_ph = tf.placeholder('float32', [None], name='eps')
 
     W_ph = tf.placeholder('float32', shape=[None, None, None], name='W')
 
@@ -127,15 +128,21 @@ def test_minimize():
             batch_W[1, :, :] = - W
 
             feed_dict = {
-                l_ph: batch_l, y_ph: batch_y, W_ph: batch_W,
-                mu_ph: mu, eps_ph: eps,
+                l_ph: batch_l,
+                y_ph: batch_y,
+                W_ph: batch_W,
+                mu_ph: np.array([mu] * 2),
+                eps_ph: np.array([eps] * 2)
             }
 
             f_value = session.run(f_star, feed_dict=feed_dict)
 
             feed_dict = {
-                l_ph: batch_l, y_ph: batch_y, W_ph: batch_W,
-                mu_ph: mu, eps_ph: eps,
+                l_ph: batch_l,
+                y_ph: batch_y,
+                W_ph: batch_W,
+                mu_ph: np.array([mu] * 2),
+                eps_ph: np.array([eps] * 2),
                 f_ph: f_value
             }
 
@@ -148,8 +155,11 @@ def test_minimize():
                         new_f_value[i, j] += rs.normal(0.0, 0.1)
 
                 feed_dict = {
-                    l_ph: batch_l, y_ph: batch_y, W_ph: batch_W,
-                    mu_ph: mu, eps_ph: eps,
+                    l_ph: batch_l,
+                    y_ph: batch_y,
+                    W_ph: batch_W,
+                    mu_ph: np.array([mu] * 2),
+                    eps_ph: np.array([eps] * 2),
                     f_ph: new_f_value
                 }
 

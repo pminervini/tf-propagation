@@ -14,16 +14,17 @@ class GaussianFields:
 
         where El(f) = ||f_l - y_l||^2 encodes the label consistency, and Es(f) = f^T L f + eps f^T f
         encodes the smoothness of the labeling function across the similarity graph.
-        :param l: TensorFlow tensor
-            N-length {0, 1} integer vector, where L_i = 1 iff the i-th instance is labeled, and 0 otherwise.
-        :param y: TensorFlow tensor
-            N-length scalar vector, where y_i is the label of the i-th instance.
-        :param mu: TensorFlow tensor
-            Scalar regularization parameter.
-        :param W: TensorFlow tensor
-            NxN Adjacency matrix of the similarity graph.
-        :param eps: TensorFlow tensor
-            Scalar regularization parameter.
+        
+        Definitions:
+            - N: number of nodes in the weighted undirected similarity graph.
+            - B: batch size.
+        
+        :param l: [BxN] TensorFlow Tensor.
+        :param y: [BxN] TensorFlow Tensor.
+        :param mu: [B] TensorFlow Tensor.
+        :param W: [BxNxN] TensorFlow Tensor.
+        :param eps: [B] TensorFlow Tensor.
+        :param solver: propagation.solvers.ASolver instance.
         """
         self.l = l
         self.y = y
@@ -38,10 +39,8 @@ class GaussianFields:
     
             E(f) = ||f_l - y_l||^2 + mu f^T L f + mu eps ||f||^2,
     
-        :param f: TensorFlow tensor
-            Vector of N continuous elements.
-        :return: TensorFlow tensor
-            Energy (cost) of the vector f.
+        :param f: [BxN] TensorFlow tensor
+        :return: [B] TensorFlow tensor
         """
         # Compute the un-normalized graph Laplacian: L = D - W
         W_shp = tf.shape(self.W)
@@ -60,8 +59,11 @@ class GaussianFields:
         I = tf.eye(W_shp[-1], batch_shape=[W_shp[0]])
         Er = tf.einsum('bm,bmn,bn->b', f, I, f)
 
+        r_mu = tf.reshape(self.mu, [-1])
+        r_eps = tf.reshape(self.eps, [-1])
+
         # Compute the whole cost function
-        return El + self.mu * (Es + self.eps * Er)
+        return El + r_mu * (Es + r_eps * Er)
 
     def minimize(self):
         """
@@ -89,12 +91,13 @@ class GaussianFields:
 
             (S + mu L + mu eps I) \hat{f} = S y
             \hat{f} = (S + mu L + mu eps I)^-1 S y
-        :return: TensorFlow tensor
-            Vector \hat{f} that minimizes the energy function E(f).
+        
+        Note: for a justification of L = |D| - W in place of L = D - W, see [2]
+        [2] P Minervini et al. - Discovering Similarity and Dissimilarity Relations for Knowledge Propagation
+            in Web Ontologies - Journal on Data Semantics, May 2016
+        
+        :return: [BxN] TensorFlow Tensor.
         """
-        # Note: for a justification of L = |D| - W in place of L = D - W, see [2]
-        # [2] P Minervini et al. - Discovering Similarity and Dissimilarity Relations for Knowledge Propagation
-        #   in Web Ontologies - Journal on Data Semantics, May 2016
         W_shp = tf.shape(self.W)
 
         d = tf.reduce_sum(abs(self.W), axis=-1)
