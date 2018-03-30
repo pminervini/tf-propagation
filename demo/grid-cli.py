@@ -32,22 +32,20 @@ def main(argv):
     #           for i in range(nb_rows) for j in range(nb_cols)
     #           if i < nb_rows - 1 and j < nb_cols - 1]
 
-    W = np.zeros((nb_nodes, nb_nodes))
+    W = np.zeros(shape=[nb_nodes, nb_nodes], dtype='float32')
 
     for [(i, j), (k, l)] in edges:
         row, col = i * nb_rows + j, k * nb_cols + l
         W[row, col] = W[col, row] = 1
 
-    l, y = np.zeros(shape=[nb_nodes, ], dtype='int8'), np.zeros(shape=[nb_nodes, ], dtype='float32')
-    l[0], y[0] = 1, 1.1
-    # L[rows - 1], y[rows - 1] = 1, 1
+    l = np.zeros(shape=[nb_rows, nb_cols], dtype='int8')
+    y = np.zeros(shape=[nb_rows, nb_cols], dtype='float32')
 
-    l[nb_nodes - 1], y[nb_nodes - 1] = 1, -1.0
-    # L[N - rows], y[N - rows] = 1, -1
+    l[0, 0] = 1
+    y[0, 0] = 1.1
 
-    for i in range(len(y)):
-        if -1e-8 < y[i] < 1e-8:
-            y[i] = 0
+    l[nb_rows - 1, nb_cols - 1] = 1
+    y[nb_rows - 1, nb_cols - 1] = - 1.0
 
     mu, eps = 1.0, 1e-8
 
@@ -59,28 +57,29 @@ def main(argv):
 
     W_ph = tf.placeholder('float32', shape=[None, None, None], name='W')
 
+    f_ph = tf.placeholder('float32', shape=[None, None], name='f')
+
     solver = ExactSolver()
     model = GaussianFields(l_ph, y_ph, mu_ph, W_ph, eps_ph, solver=solver)
+    e = model(f_ph)
 
     f_star = model.minimize()
 
     with tf.Session() as session:
-        l_v = np.zeros(shape=(2, nb_nodes))
-        y_v = np.zeros(shape=(2, nb_nodes))
-        W_v = np.zeros(shape=(2, nb_nodes, nb_nodes))
+        batch_l = np.zeros(shape=[2, nb_nodes])
+        batch_y = np.zeros(shape=[2, nb_nodes])
+        batch_W = np.zeros(shape=[2, nb_nodes, nb_nodes])
 
-        l_v[0, :] = l
-        y_v[0, :] = y
-        W_v[0, :, :] = W
+        batch_l[0, :] = l.reshape(nb_nodes)
+        batch_y[0, :] = y.reshape(nb_nodes)
+        batch_W[0, :, :] = W
 
-        l_v[1, :] = l
-        y_v[1, :] = y
-        W_v[1, :, :] = - W
+        batch_l[1, :] = l.reshape(nb_nodes)
+        batch_y[1, :] = y.reshape(nb_nodes)
+        batch_W[1, :, :] = - W
 
         feed_dict = {
-            l_ph: l_v,
-            y_ph: y_v,
-            W_ph: W_v,
+            l_ph: batch_l, y_ph: batch_y, W_ph: batch_W,
             mu_ph: mu, eps_ph: eps,
         }
 
@@ -93,12 +92,31 @@ def main(argv):
         f_value_0 = f_value[0, :]
         print(hd(f_value_0.reshape((nb_rows, nb_cols))))
 
-        # f_value_0 = f_value[1, :]
-        # print(hd(f_value_0.reshape((nb_rows, nb_cols))))
+        feed_dict = {
+            l_ph: batch_l, y_ph: batch_y, W_ph: batch_W,
+            mu_ph: mu, eps_ph: eps,
+            f_ph: f_value
+        }
 
-        e = model(f_star)
-        e_value = session.run(e, feed_dict=feed_dict)
-        print(e_value)
+        minimum_e_value = session.run(e, feed_dict=feed_dict)
+
+        rs = np.random.RandomState(0)
+        for _ in range(32):
+            new_f_value = np.copy(f_value)
+            for i in range(f_value.shape[0]):
+                for j in range(f_value.shape[1]):
+                    new_f_value[i, j] += rs.normal(0.0, 0.1)
+
+            feed_dict = {
+                l_ph: batch_l, y_ph: batch_y, W_ph: batch_W,
+                mu_ph: mu, eps_ph: eps,
+                f_ph: new_f_value
+            }
+
+            new_e_value = session.run(e, feed_dict=feed_dict)
+
+            for i in range(minimum_e_value.shape[0]):
+                assert minimum_e_value[i] <= new_e_value[i]
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
