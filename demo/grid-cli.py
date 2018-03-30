@@ -49,6 +49,18 @@ def main(argv):
 
     mu, eps = 1.0, 1e-8
 
+    batch_l = np.zeros(shape=[2, nb_nodes], dtype='float32')
+    batch_y = np.zeros(shape=[2, nb_nodes], dtype='float32')
+    batch_W = np.zeros(shape=[2, nb_nodes, nb_nodes], dtype='float32')
+
+    batch_l[0, :] = l.reshape(nb_nodes)
+    batch_y[0, :] = y.reshape(nb_nodes)
+    batch_W[0, :, :] = W
+
+    batch_l[1, :] = l.reshape(nb_nodes)
+    batch_y[1, :] = y.reshape(nb_nodes)
+    batch_W[1, :, :] = - W
+
     l_ph = tf.placeholder('float32', shape=[None, None], name='l')
     y_ph = tf.placeholder('float32', shape=[None, None], name='y')
 
@@ -59,25 +71,13 @@ def main(argv):
 
     f_ph = tf.placeholder('float32', shape=[None, None], name='f')
 
-    # solver = ExactSolver()
-    solver = JacobiSolver()
-    model = GaussianFields(l_ph, y_ph, mu_ph, W_ph, eps_ph, solver=solver)
-    e = model(f_ph)
-
-    f_star = model.minimize()
-
     with tf.Session() as session:
-        batch_l = np.zeros(shape=[2, nb_nodes])
-        batch_y = np.zeros(shape=[2, nb_nodes])
-        batch_W = np.zeros(shape=[2, nb_nodes, nb_nodes])
+        # solver = ExactSolver()
+        solver = JacobiSolver()
+        model = GaussianFields(l_ph, y_ph, mu_ph, W_ph, eps_ph, solver=solver)
+        e = model(f_ph)
 
-        batch_l[0, :] = l.reshape(nb_nodes)
-        batch_y[0, :] = y.reshape(nb_nodes)
-        batch_W[0, :, :] = W
-
-        batch_l[1, :] = l.reshape(nb_nodes)
-        batch_y[1, :] = y.reshape(nb_nodes)
-        batch_W[1, :, :] = - W
+        f_star = model.minimize()
 
         feed_dict = {
             l_ph: batch_l, y_ph: batch_y, W_ph: batch_W,

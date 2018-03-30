@@ -108,6 +108,7 @@ class GaussianFields:
         A = S + self.mu * (L + self.eps * I)
         b = tf.einsum('bmn,bm->bn', S, self.y)
 
-        hat_f = self.solver.solve(A, tf.expand_dims(b, 2))
+        b = tf.expand_dims(b, 2)
+        hat_f = self.solver.solve(A, b)
 
         return tf.reshape(hat_f, tf.shape(self.y))

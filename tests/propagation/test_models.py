@@ -83,15 +83,6 @@ def test_minimize():
         row, col = i * nb_rows + j, k * nb_cols + l
         W[row, col] = W[col, row] = 1
 
-    l = np.zeros(shape=[nb_rows, nb_cols], dtype='int8')
-    y = np.zeros(shape=[nb_rows, nb_cols], dtype='float32')
-
-    l[0, 0] = 1
-    y[0, 0] = 1.1
-
-    l[nb_rows - 1, nb_cols - 1] = 1
-    y[nb_rows - 1, nb_cols - 1] = - 1.0
-
     mu, eps = 1.0, 1e-8
 
     l_ph = tf.placeholder('float32', shape=[None, None], name='l')
@@ -110,53 +101,62 @@ def test_minimize():
 
     f_star = model.minimize()
 
+    rs = np.random.RandomState(0)
+
     with tf.Session() as session:
-        batch_l = np.zeros(shape=[2, nb_nodes])
-        batch_y = np.zeros(shape=[2, nb_nodes])
-        batch_W = np.zeros(shape=[2, nb_nodes, nb_nodes])
 
-        batch_l[0, :] = l.reshape(nb_nodes)
-        batch_y[0, :] = y.reshape(nb_nodes)
-        batch_W[0, :, :] = W
+        for _ in range(8):
+            l = np.zeros(shape=[nb_rows, nb_cols], dtype='int8')
+            y = np.zeros(shape=[nb_rows, nb_cols], dtype='float32')
 
-        batch_l[1, :] = l.reshape(nb_nodes)
-        batch_y[1, :] = y.reshape(nb_nodes)
-        batch_W[1, :, :] = - W
+            for i in range(l.shape[0]):
+                for j in range(l.shape[1]):
+                    l[i, j] = rs.randint(2)
+                    y[i, j] = rs.rand()
 
-        feed_dict = {
-            l_ph: batch_l, y_ph: batch_y, W_ph: batch_W,
-            mu_ph: mu, eps_ph: eps,
-        }
+            batch_l = np.zeros(shape=[2, nb_nodes])
+            batch_y = np.zeros(shape=[2, nb_nodes])
+            batch_W = np.zeros(shape=[2, nb_nodes, nb_nodes])
 
-        f_value = session.run(f_star, feed_dict=feed_dict)
+            batch_l[0, :] = l.reshape(nb_nodes)
+            batch_y[0, :] = y.reshape(nb_nodes)
+            batch_W[0, :, :] = W
 
-        f_value_0 = f_value[0, :]
-
-        feed_dict = {
-            l_ph: batch_l, y_ph: batch_y, W_ph: batch_W,
-            mu_ph: mu, eps_ph: eps,
-            f_ph: f_value
-        }
-
-        minimum_e_value = session.run(e, feed_dict=feed_dict)
-
-        rs = np.random.RandomState(0)
-        for _ in range(1024):
-            new_f_value = np.copy(f_value)
-            for i in range(f_value.shape[0]):
-                for j in range(f_value.shape[1]):
-                    new_f_value[i, j] += rs.normal(0.0, 0.1)
+            batch_l[1, :] = l.reshape(nb_nodes)
+            batch_y[1, :] = y.reshape(nb_nodes)
+            batch_W[1, :, :] = - W
 
             feed_dict = {
                 l_ph: batch_l, y_ph: batch_y, W_ph: batch_W,
                 mu_ph: mu, eps_ph: eps,
-                f_ph: new_f_value
             }
 
-            new_e_value = session.run(e, feed_dict=feed_dict)
+            f_value = session.run(f_star, feed_dict=feed_dict)
 
-            for i in range(minimum_e_value.shape[0]):
-                assert minimum_e_value[i] <= new_e_value[i]
+            feed_dict = {
+                l_ph: batch_l, y_ph: batch_y, W_ph: batch_W,
+                mu_ph: mu, eps_ph: eps,
+                f_ph: f_value
+            }
+
+            minimum_e_value = session.run(e, feed_dict=feed_dict)
+
+            for _ in range(8):
+                new_f_value = np.copy(f_value)
+                for i in range(f_value.shape[0]):
+                    for j in range(f_value.shape[1]):
+                        new_f_value[i, j] += rs.normal(0.0, 0.1)
+
+                feed_dict = {
+                    l_ph: batch_l, y_ph: batch_y, W_ph: batch_W,
+                    mu_ph: mu, eps_ph: eps,
+                    f_ph: new_f_value
+                }
+
+                new_e_value = session.run(e, feed_dict=feed_dict)
+
+                for i in range(minimum_e_value.shape[0]):
+                    assert minimum_e_value[i] <= new_e_value[i]
 
 
 if __name__ == '__main__':
