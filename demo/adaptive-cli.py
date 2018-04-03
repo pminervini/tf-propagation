@@ -17,16 +17,16 @@ import logging
 def main(argv):
     tf.set_random_seed(0)
 
-    nb_rows, nb_cols = 6, 6
+    nb_rows, nb_cols = 8, 8
     nb_nodes = nb_rows * nb_cols
 
     edges_horizontal = [[(i, j), (i, j + 1)]
-                      for i in range(nb_rows) for j in range(nb_cols)
-                      if i < nb_rows and j < nb_cols - 1]
+                        for i in range(nb_rows) for j in range(nb_cols)
+                        if i < nb_rows and j < nb_cols - 1]
 
     edges_vertical = [[(i, j), (i + 1, j)]
-                        for i in range(nb_rows) for j in range(nb_cols)
-                        if i < nb_rows - 1 and j < nb_cols]
+                      for i in range(nb_rows) for j in range(nb_cols)
+                      if i < nb_rows - 1 and j < nb_cols]
 
     edges = [(e, 0) for e in edges_horizontal] + [(e, 1) for e in edges_vertical]
 
@@ -76,7 +76,7 @@ def main(argv):
     W = tf.einsum('a,bmna->bmn', alpha, T_ph)
 
     solver = ExactSolver()
-    # solver = JacobiSolver()
+    # solver = JacobiSolver(100)
 
     l_idxs = tf.where(l_ph > 0)
 
@@ -92,7 +92,7 @@ def main(argv):
             default_value=1)
         mask = tf.cast(mask, tf.float32)
 
-        mask = tf.nn.dropout(mask, keep_prob=0.5)
+        mask = tf.nn.dropout(mask, keep_prob=0.8)
 
         model = GaussianFields(l=l_ph * mask, y=y_ph, mu=mu_ph, W=W, eps=eps_ph,
                                solver=solver)
@@ -113,7 +113,7 @@ def main(argv):
                          elems=elems, initializer=initializer)
     loo_loss = loo_losses[-1]
 
-    regularized_loo_loss = loo_loss + 0.1 * tf.nn.l2_loss(W)
+    regularized_loo_loss = loo_loss + 0.1 * tf.nn.l2_loss(alpha)
 
     inf_model = GaussianFields(l=l_ph, y=y_ph, mu=mu_ph, W=W, eps=eps_ph, solver=solver)
     inf_f_star = inf_model.minimize()
@@ -140,8 +140,8 @@ def main(argv):
         for i in range(1024):
             session.run(train_op, feed_dict=feed_dict)
 
-            loo_loss_value = session.run(loo_loss, feed_dict=feed_dict)
-            alpha_value = session.run(alpha, feed_dict=feed_dict)
+            # loo_loss_value = session.run(loo_loss, feed_dict=feed_dict)
+            # alpha_value = session.run(alpha, feed_dict=feed_dict)
 
             # print(loo_loss_value, alpha_value)
 
