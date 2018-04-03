@@ -17,29 +17,21 @@ import logging
 def main(argv):
     tf.set_random_seed(0)
 
-    nb_rows, nb_cols = 10, 10
+    nb_rows, nb_cols = 6, 6
     nb_nodes = nb_rows * nb_cols
 
-    edges_vertical = [[(i, j), (i, j + 1)]
+    edges_horizontal = [[(i, j), (i, j + 1)]
                       for i in range(nb_rows) for j in range(nb_cols)
                       if i < nb_rows and j < nb_cols - 1]
 
-    edges_horizontal = [[(i, j), (i + 1, j)]
+    edges_vertical = [[(i, j), (i + 1, j)]
                         for i in range(nb_rows) for j in range(nb_cols)
                         if i < nb_rows - 1 and j < nb_cols]
 
-    edges_diagonal = [[(i, j), (i + 1, j + 1)]
-                      for i in range(nb_rows) for j in range(nb_cols)
-                      if i < nb_rows - 1 and j < nb_cols - 1]
-    edges_diagonal = []
+    edges = [(e, 0) for e in edges_horizontal] + [(e, 1) for e in edges_vertical]
 
-    edges = [(e, 0) for e in edges_vertical] + \
-            [(e, 1) for e in edges_horizontal] + \
-            [(e, 2) for e in edges_diagonal]
-
-    # We do not have an adjacency matrix,
-    # but rather a multi-relational adjacency tensor
-    T = np.zeros(shape=[nb_nodes, nb_nodes, 3], dtype='float32')
+    # We do not have an adjacency matrix, but rather a multi-relational adjacency tensor
+    T = np.zeros(shape=[nb_nodes, nb_nodes, 2], dtype='float32')
 
     for ([(i, j), (k, l)], g) in edges:
         row, col = i * nb_rows + j, k * nb_cols + l
@@ -100,24 +92,34 @@ def main(argv):
             default_value=1)
         mask = tf.cast(mask, tf.float32)
 
-        model = GaussianFields(l=l_ph * mask, y=y_ph, mu=mu_ph, W=W, eps=eps_ph, solver=solver)
+        mask = tf.nn.dropout(mask, keep_prob=0.5)
+
+        model = GaussianFields(l=l_ph * mask, y=y_ph, mu=mu_ph, W=W, eps=eps_ph,
+                               solver=solver)
         f_star = model.minimize()
 
-        f_value = f_star[row_idx, col_idx]
-        y_value = y_ph[row_idx, col_idx]
+        f_value = tf.cast(f_star[row_idx, col_idx], tf.float32)
+        y_value = tf.cast(y_ph[row_idx, col_idx], tf.float32)
 
         res = a + (f_value - y_value) ** 2.0
         return res
 
-    elems = np.array([0, 1, 2, 3], dtype=np.float32)
-    loo_losses = tf.scan(lambda a, x: leave_one_out_loss(a, x), elems=elems)
+    elems = tf.range(tf.shape(l_idxs)[0])
+    elems = tf.identity(elems)
+
+    initializer = tf.constant(0.0, dtype=tf.float32)
+
+    loo_losses = tf.scan(lambda a, x: leave_one_out_loss(a, x),
+                         elems=elems, initializer=initializer)
     loo_loss = loo_losses[-1]
+
+    regularized_loo_loss = loo_loss + 0.1 * tf.nn.l2_loss(W)
 
     inf_model = GaussianFields(l=l_ph, y=y_ph, mu=mu_ph, W=W, eps=eps_ph, solver=solver)
     inf_f_star = inf_model.minimize()
 
-    optimizer = tf.train.AdamOptimizer(learning_rate=0.005)
-    train_op = optimizer.minimize(loo_loss, var_list=[alpha])
+    optimizer = tf.train.AdamOptimizer(learning_rate=0.01)
+    train_op = optimizer.minimize(regularized_loo_loss, var_list=[alpha])
 
     init_op = tf.global_variables_initializer()
 
@@ -134,8 +136,6 @@ def main(argv):
 
     with tf.Session(config=session_config) as session:
         session.run(init_op)
-        session.run(loo_loss, feed_dict=feed_dict)
-        #  session.run(inf_f_star, feed_dict=feed_dict)
 
         for i in range(1024):
             session.run(train_op, feed_dict=feed_dict)
@@ -143,11 +143,11 @@ def main(argv):
             loo_loss_value = session.run(loo_loss, feed_dict=feed_dict)
             alpha_value = session.run(alpha, feed_dict=feed_dict)
 
-            print(loo_loss_value, alpha_value)
+            # print(loo_loss_value, alpha_value)
 
-            #hd = HintonDiagram()
-            # inf_f_value = session.run(inf_f_star, feed_dict=feed_dict)
-            # print(hd(inf_f_value[0, :].reshape((nb_rows, nb_cols))))
+            hd = HintonDiagram()
+            inf_f_value = session.run(inf_f_star, feed_dict=feed_dict)
+            print(hd(inf_f_value[0, :].reshape((nb_rows, nb_cols))))
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
