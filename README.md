@@ -17,7 +17,7 @@ E(f) = \sum_{i \in L} (f[i] - y[i])^2 + mu \sum_i \sum_j W_ij(f[i] - f[j])^2 + m
 - The term `\sum_{i} f[i]^2` is a L2 regulariser.
 
 Since the cost function `E(f)` is quadratic, it has one closed-form solution for `mu > 0` and `eps > 0`.
-Furthermore, it is possible to *backpropagate* the error resulting from the propagation process, back to the graph structure `W`.
+Furthermore, it is possible to *backpropagate* the error resulting from the propagation process, back to the graph structure encoded by the adjacency graph `W`.
 
 ### Examples
 
