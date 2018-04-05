@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import os
 import sys
 
 import numpy as np
@@ -52,7 +53,7 @@ def main(argv):
     l[nb_rows - 1, nb_cols - 1] = 1
     y[nb_rows - 1, nb_cols - 1] = - 1.0
 
-    mu, eps = 1.0, 1e-2
+    mu, eps = 10.0, 1e-2
 
     batch_l = np.zeros(shape=[1, nb_nodes], dtype='float32')
     batch_y = np.zeros(shape=[1, nb_nodes], dtype='float32')
@@ -80,7 +81,10 @@ def main(argv):
 
     l_idxs = tf.where(l_ph > 0)
 
-    def leave_one_out_loss(a, x):
+    def clip(x, epsilon=1e-10):
+        return tf.clip_by_value(x, epsilon, 1.0)
+
+    def leave_one_out_loss(a, x, epsilon=1e-4):
         idx_int = tf.cast(x, tf.int32)
         row_idx = tf.cast(l_idxs[idx_int, 0], tf.int32)
         col_idx = tf.cast(l_idxs[idx_int, 1], tf.int32)
@@ -101,7 +105,11 @@ def main(argv):
         f_value = tf.cast(f_star[row_idx, col_idx], tf.float32)
         y_value = tf.cast(y_ph[row_idx, col_idx], tf.float32)
 
-        res = a + (f_value - y_value) ** 2.0
+        loss_value = (y_value - f_value) ** 2.0
+        # loss_value = abs(f_value - y_value)
+        # loss_value = - y_value * tf.log(clip(f_value, epsilon))\
+        #              - (1 - y_value) * tf.log(clip(1 - f_value, epsilon))
+        res = a + loss_value
         return res
 
     elems = tf.range(tf.shape(l_idxs)[0])
@@ -113,12 +121,12 @@ def main(argv):
                          elems=elems, initializer=initializer)
     loo_loss = loo_losses[-1]
 
-    regularized_loo_loss = loo_loss + 0.1 * tf.nn.l2_loss(alpha)
+    regularized_loo_loss = loo_loss + 1e-6 * tf.nn.l2_loss(alpha)
 
     inf_model = GaussianFields(l=l_ph, y=y_ph, mu=mu_ph, W=W, eps=eps_ph, solver=solver)
     inf_f_star = inf_model.minimize()
 
-    optimizer = tf.train.AdamOptimizer(learning_rate=0.01)
+    optimizer = tf.train.AdamOptimizer(learning_rate=0.05)
     train_op = optimizer.minimize(regularized_loo_loss, var_list=[alpha])
 
     init_op = tf.global_variables_initializer()
@@ -137,18 +145,24 @@ def main(argv):
     with tf.Session(config=session_config) as session:
         session.run(init_op)
 
-        for i in range(1024):
+        for i in range(128):
             session.run(train_op, feed_dict=feed_dict)
 
-            # loo_loss_value = session.run(loo_loss, feed_dict=feed_dict)
+            loo_loss_value = session.run(loo_loss, feed_dict=feed_dict)
             # alpha_value = session.run(alpha, feed_dict=feed_dict)
 
             # print(loo_loss_value, alpha_value)
 
             hd = HintonDiagram()
             inf_f_value = session.run(inf_f_star, feed_dict=feed_dict)
-            print(hd(inf_f_value[0, :].reshape((nb_rows, nb_cols))))
+
+            diagram = hd(inf_f_value[0, :].reshape((nb_rows, nb_cols)))
+            os.system('clear')
+
+            print(diagram)
+            print('Leave One Out Loss: {:.6}'.format(loo_loss_value))
+
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.ERROR)
     main(sys.argv[1:])
