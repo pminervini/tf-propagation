@@ -48,9 +48,7 @@ We refer to [TWEB], and [JoDS] for a full proof derivation, a complexity analysi
   volume    = {12},
   number    = {1},
   pages     = {2:1--2:28},
-  year      = {2018},
-  url       = {http://doi.acm.org/10.1145/3105961},
-  doi       = {10.1145/3105961}
+  year      = {2018}
 }
 
 @article{DBLP:journals/jodsn/MinervinidFT16,
@@ -64,8 +62,6 @@ We refer to [TWEB], and [JoDS] for a full proof derivation, a complexity analysi
   volume    = {5},
   number    = {4},
   pages     = {229--248},
-  year      = {2016},
-  url       = {https://doi.org/10.1007/s13740-016-0062-7},
-  doi       = {10.1007/s13740-016-0062-7}
+  year      = {2016}
 }
 ```
