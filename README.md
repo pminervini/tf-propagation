@@ -36,36 +36,3 @@ We refer to [TWEB], and [JoDS] for a full proof derivation, a complexity analysi
 [TWEB]: [Adaptive Knowledge Propagation in Web Ontologies](https://dl.acm.org/citation.cfm?id=3105961). TWEB 12(1): 2:1-2:28 (2018)
 
 [JoDS]: [Discovering Similarity and Dissimilarity Relations for Knowledge Propagation in Web Ontologies](https://link.springer.com/article/10.1007/s13740-016-0062-7). J. Data Semantics 5(4): 229-248 (2016)
-
-```text
-@article{DBLP:journals/tweb/MinerviniTdF18,
-  author    = {Pasquale Minervini and
-               Volker Tresp and
-               Claudia d'Amato and
-               Nicola Fanizzi},
-  title     = {Adaptive Knowledge Propagation in Web Ontologies},
-  journal   = {{TWEB}},
-  volume    = {12},
-  number    = {1},
-  pages     = {2:1--2:28},
-  year      = {2018},
-  url       = {http://doi.acm.org/10.1145/3105961},
-  doi       = {10.1145/3105961}
-}
-
-@article{DBLP:journals/jodsn/MinervinidFT16,
-  author    = {Pasquale Minervini and
-               Claudia d'Amato and
-               Nicola Fanizzi and
-               Volker Tresp},
-  title     = {Discovering Similarity and Dissimilarity Relations for Knowledge Propagation
-               in Web Ontologies},
-  journal   = {J. Data Semantics},
-  volume    = {5},
-  number    = {4},
-  pages     = {229--248},
-  year      = {2016},
-  url       = {https://doi.org/10.1007/s13740-016-0062-7},
-  doi       = {10.1007/s13740-016-0062-7}
-}
-```
