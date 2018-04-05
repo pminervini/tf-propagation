@@ -56,8 +56,7 @@ We refer to [TWEB], and [JoDS] for a full proof derivation, a complexity analysi
                Claudia d'Amato and
                Nicola Fanizzi and
                Volker Tresp},
-  title     = {Discovering Similarity and Dissimilarity Relations for Knowledge Propagation
-               in Web Ontologies},
+  title     = {Discovering Similarity and Dissimilarity Relations for Knowledge Propagation in Web Ontologies},
   journal   = {J. Data Semantics},
   volume    = {5},
   number    = {4},
