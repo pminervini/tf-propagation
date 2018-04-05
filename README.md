@@ -27,7 +27,7 @@ Here's a small demo where we propagate the labels (+1.1 and -1.0) from two nodes
 
 Here we learn the optimal edge weights by minimizing the prediction error via gradient descent:
 
-![AdaptiveDemo](http://data.neuralnoise.com/tf-propagation/tty.gif)
+![AdaptiveDemo](http://data.neuralnoise.com/tf-propagation/ttycrop.gif)
 
 ### References
 
