@@ -37,8 +37,6 @@ We refer to [TWEB], and [JoDS] for a full proof derivation, a complexity analysi
 
 [JoDS]: [Discovering Similarity and Dissimilarity Relations for Knowledge Propagation in Web Ontologies](https://link.springer.com/article/10.1007/s13740-016-0062-7). J. Data Semantics 5(4): 229-248 (2016)
 
-### BibTex
-
 ```text
 @article{DBLP:journals/tweb/MinerviniTdF18,
   author    = {Pasquale Minervini and
