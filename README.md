@@ -19,6 +19,8 @@ E(f) = \sum_{i \in L} (f[i] - y[i])^2 + mu \sum_i \sum_j W_ij(f[i] - f[j])^2 + m
 Since the cost function `E(f)` is quadratic, it has one closed-form solution for `mu > 0` and `eps > 0`.
 Furthermore, it is possible to *backpropagate* the error resulting from the propagation process, back to the graph structure encoded by the adjacency graph `W`.
 
+See [a blog post on this topic](http://neuralnoise.com/2016/gaussian-fields/).
+
 ### Examples
 
 Here's a small demo where we propagate the labels (+1.1 and -1.0) from two nodes (upper left and lower right) to all nodes in an undirected graph structured as a `40 x 40` grid:
