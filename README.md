@@ -10,11 +10,11 @@ defined over a node labeling `f \in R^n`:
 E(f) = \sum_{i \in L} (f[i] - y[i])^2 + mu \sum_i \sum_j W_ij(f[i] - f[j])^2 + mu eps \sum_{i} f_i^2.
 ```
 
-- The term `\sum_{i \in L} (f[i] - y[i])^2` enforces consistency of labeled nodes in `L` with a gold labeling `y`.
+- The term `\sum_{i \in L} (f[i] - y[i])^2` enforces consistency of labeled nodes (i.e. those in `L`) with a gold labeling `y`.
 
-- The term `\sum_i \sum_j W_ij(f[i] - f[j])^2` enforces that, given two nodes that are connected in the undirected graph (i.e. `W_ij = W_ji > 0`), they are associated to a similar labeling.
+- The term `\sum_i \sum_j W_ij(f[i] - f[j])^2` enforces that, given two nodes that are connected in the undirected graph (with weight `W_ij = W_ji > 0`), they are associated to a similar labeling.
 
-The term `\sum_{i} f_i^2` is a L2 regulariser.
+- The term `\sum_{i} f[i]^2` is a L2 regulariser.
 
 Since the cost function `E(f)` is quadratic, it has one closed-form solution for `mu > 0` and `eps > 0`.
 Furthermore, it is possible to *backpropagate* the error resulting from the propagation process, back to the graph structure `W`.
