@@ -19,13 +19,19 @@ The last term is a L2 regulariser.
 Since the cost function `E(f)` is quadratic, it has one closed-form solution for `mu > 0` and `eps > 0`.
 Furthermore, it is possible to *backpropagate* the error resulting from the propagation process, back to the graph creation.
 
-Example:
+### Examples
 
-Here's a small demo, where we propagate the labels (+1.1 and -1.0) from two nodes (upper left and lower right) to all nodes in an undirected graph structured as a `40 x 40` grid.
+Here's a small demo where we propagate the labels (+1.1 and -1.0) from two nodes (upper left and lower right) to all nodes in an undirected graph structured as a `40 x 40` grid:
 
 ![Demo](http://data.neuralnoise.com/tf-propagation/demo.png)
 
-We refer to [TWEB], and [JoDS] for a full derivation, a complexity analysis, and more information on learning the optimal similarity graph from data using backprop.
+Here we learn the optimal edge weights by minimizing the prediction error via gradient descent:
+
+![AdaptiveDemo](http://data.neuralnoise.com/tf-propagation/tty.gif)
+
+### References
+
+We refer to [TWEB], and [JoDS] for a full proof derivation, a complexity analysis, and more information on learning the optimal similarity graph from data using backprop.
 
 [TWEB]: [Adaptive Knowledge Propagation in Web Ontologies](https://dl.acm.org/citation.cfm?id=3105961). TWEB 12(1): 2:1-2:28 (2018)
 
