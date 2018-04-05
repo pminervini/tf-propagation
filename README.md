@@ -17,7 +17,7 @@ connected in the undirected graph (i.e. `W_ij = W_ji > 0`), they are associated 
 The last term is a L2 regulariser.
 
 Since the cost function `E(f)` is quadratic, it has one closed-form solution for `mu > 0` and `eps > 0`.
-Furthermore, it is possible to *backpropagate* the error resulting from the propagation process, back to the graph creation.
+Furthermore, it is possible to *backpropagate* the error resulting from the propagation process, back to the graph structure `W`.
 
 ### Examples
 
