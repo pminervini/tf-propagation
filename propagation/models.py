@@ -92,7 +92,7 @@ class GaussianFields:
             (S + mu L + mu eps I) \hat{f} = S y
             \hat{f} = (S + mu L + mu eps I)^-1 S y
         
-        Note: for a justification of L = |D| - W in place of L = D - W, see [2]
+        Note: for a justification of D_ii = \sum_j |W_ij| in place of D_ii = \sum_j W_ij, see [2]
         [2] P Minervini et al. - Discovering Similarity and Dissimilarity Relations for Knowledge Propagation
             in Web Ontologies - Journal on Data Semantics, May 2016
         
